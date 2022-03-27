@@ -1,8 +1,8 @@
-//lab04.c
+//lab05.c
+#include<time.h>
 #include<stdio.h>
 #include<math.h>
 #include"GL/glut.h" 
-
 #define Pi 3.141592654
 
 
@@ -11,8 +11,10 @@ typedef struct POINT {
 	GLfloat x;
 	GLfloat y;
 } Point;
+
 #define POINTS_VERTEX_NUM 12 
 #define CIRCLE_VERTEX_NUM 72 
+
 Point points_vertexes[POINTS_VERTEX_NUM];
 Point circle_vertexes[CIRCLE_VERTEX_NUM];
 
@@ -20,9 +22,11 @@ Point circle_vertexes[CIRCLE_VERTEX_NUM];
 //function declerations
 void Deg2Vector(float VecDeg, float VecSize, Point* p);
 float Deg2Rad(float deg);
+
 void drawingCB(void);
 void reshapeCB(int width, int height);
-
+void menuCB(int value);
+void keyboardCB(int key, int x, int y);
 //globals
 int hours, minutes;
 
@@ -38,8 +42,15 @@ int main(int argc, char* argv[])
 		Deg2Vector((n + 1) * 360 / CIRCLE_VERTEX_NUM, 0.9, &circle_vertexes[n]);
 	}
 
-	hours = 3;
-	minutes = 25;
+	time_t t;
+	struct tm* timeinfo;
+	time(&t);
+	timeinfo = localtime(&t);
+	hours = timeinfo->tm_hour;
+	minutes = timeinfo->tm_min;
+
+	//hours = 3;
+	//minutes = 25;
 
 	//initizlizing GLUT
 	glutInit(&argc, argv);
@@ -53,6 +64,11 @@ int main(int argc, char* argv[])
 	//registering callbacks
 	glutDisplayFunc(drawingCB);
 	glutReshapeFunc(reshapeCB);
+	glutSpecialFunc(keyboardCB);
+	glutCreateMenu(menuCB);
+	glutAddMenuEntry("Reset", 25);
+	glutAddMenuEntry("Exit", 30);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
 
 	//starting main loop
 	glutMainLoop();
@@ -70,7 +86,6 @@ float Deg2Rad(float deg)
 {
 	return deg * Pi / 180.0;
 }
-
 
 
 void DrawClock(int hours, int minutes)
@@ -111,21 +126,20 @@ void DrawClock(int hours, int minutes)
 	glColor3f(0.0f, 0.0f, 0.8f);
 
 	glPushMatrix();
-		glRotatef(-HourDeg, 0, 0, 1);
-		glBegin(GL_LINES);
-			glVertex2f(0, 0);
-			glVertex2f(0, 0.4);
-		glEnd();
+	glRotatef(-HourDeg, 0, 0, 1);
+	glBegin(GL_LINES);
+	glVertex2f(0, 0);
+	glVertex2f(0, 0.4);
+	glEnd();
 	glPopMatrix();
 
 	glPushMatrix();
-		glRotatef(-MinutesDeg, 0, 0, 1);
-		glBegin(GL_LINES);
-			glVertex2f(0, 0);
-			glVertex2f(0, 0.6);
-		glEnd();
+	glRotatef(-MinutesDeg, 0, 0, 1);
+	glBegin(GL_LINES);
+	glVertex2f(0, 0);
+	glVertex2f(0, 0.6);
+	glEnd();
 	glPopMatrix();
-
 }
 
 // rendering callback
@@ -145,26 +159,26 @@ void drawingCB()
 
 	//drawing clock 1
 	glPushMatrix();
-		glTranslated(1.5, 1.5, 0);
-		DrawClock(hours, minutes);
+	glTranslated(1.5, 1.5, 0);
+	DrawClock(hours, minutes);
 	glPopMatrix();
 
 	//drawing clock 2
 	glPushMatrix();
-		glTranslated(-1.5, 1.5, 0);
-		DrawClock(hours + 1, minutes + 10);
+	glTranslated(-1.5, 1.5, 0);
+	DrawClock(hours + 1, minutes + 10);
 	glPopMatrix();
 
 	//drawing clock 3
 	glPushMatrix();
-		glTranslated(-1.5, -1.5, 0);
-		DrawClock(hours + 3, minutes + 30);
+	glTranslated(-1.5, -1.5, 0);
+	DrawClock(hours + 3, minutes + 30);
 	glPopMatrix();
 
 	//drawing clock 4
 	glPushMatrix();
-		glTranslated(1.5, -1.5, 0);
-		DrawClock(hours + 2, minutes + 20);
+	glTranslated(1.5, -1.5, 0);
+	DrawClock(hours + 2, minutes + 20);
 	glPopMatrix();
 
 	//checking transformation matrixes for debuging
@@ -180,7 +194,6 @@ void drawingCB()
 }
 
 
-
 void reshapeCB(int width, int height)
 {
 	float left, right, bottom, top;
@@ -188,7 +201,7 @@ void reshapeCB(int width, int height)
 	GLfloat ModelviewMatrix[16];
 	GLfloat ProjectionMatrix[16];
 
-	//define boundaries
+	//define our ortho
 	left = -3;
 	right = 3;
 	bottom = -3;
@@ -220,7 +233,45 @@ void reshapeCB(int width, int height)
 	//projection or gluOrtho2D
 	gluOrtho2D(left, right, bottom, top);
 
+
 	//checking transformation matrixes for debuging
 	glGetFloatv(GL_MODELVIEW_MATRIX, ModelviewMatrix);
 	glGetFloatv(GL_PROJECTION_MATRIX, ProjectionMatrix);
+}
+
+
+void menuCB(int value)
+{
+
+	switch (value)
+	{
+	case 25:
+		hours = 12;
+		minutes = 0;
+		glutPostRedisplay();
+		break;
+	case 30:
+		exit(0);
+	}
+}
+
+
+void keyboardCB(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_DOWN:
+		minutes = --minutes % 60;
+		break;
+	case GLUT_KEY_UP:
+		minutes = ++minutes % 60;
+		break;
+	case GLUT_KEY_LEFT:
+		hours = ++hours % 12;
+		break;
+	case GLUT_KEY_RIGHT:
+		hours = --hours % 12;
+		break;
+	}
+	glutPostRedisplay();
 }
