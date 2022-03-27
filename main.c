@@ -33,6 +33,9 @@ int hours, minutes;
 
 int main(int argc, char* argv[])
 {
+	time_t t;
+	struct tm* timeinfo;
+
 	//initializing points and circle array
 	int n;
 	for (n = 0; n < POINTS_VERTEX_NUM; n++) {
@@ -42,8 +45,7 @@ int main(int argc, char* argv[])
 		Deg2Vector((n + 1) * 360 / CIRCLE_VERTEX_NUM, 0.9, &circle_vertexes[n]);
 	}
 
-	time_t t;
-	struct tm* timeinfo;
+	
 	time(&t);
 	timeinfo = localtime(&t);
 	hours = timeinfo->tm_hour;
